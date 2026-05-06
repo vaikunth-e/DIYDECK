@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <HardwareTimer.h>
-#include "stm32f3xx_hal.h"
+#include "stm32f3xx_hal.h" // stm32 functionality for ADC & DAC
+
+#include "reverb_model.h" // reverb functionality
 
 // Hardware mapping
 // Input: A0 / PA0 = ADC1_IN1, Analog input
@@ -10,7 +12,7 @@
 // Audio output should be AC-coupled into the PCB's Audio_In input.
 
 // Audio settings
-// Sample rate of 16 kHz confirmed to provide decent audio; 8kHz is pretty noisy. Have not tested higher
+// USing 32kHz, possible improvement? Sample rate of 16 kHz confirmed to provide decent audio; 8kHz is pretty noisy
 // ADC uses 12-bit integer representation. Its integer range is thus 0 - 4095, and its voltage range is 0 - 3.3V, so 2048 is ~1.65V
 // Biasing the AC audio to ADC midpoint is important because AC has negative voltages, while the ADC/DAC is unipolar and only handles 0 - 3.3V
 static const uint32_t SAMPLE_RATE = 32000;
@@ -19,6 +21,14 @@ static const int ADC_MID = 2048;
 // Increase gain to improve (NOT NECESSARY, old)
 static const int GAIN_NUM = 1;
 static const int GAIN_DEN = 1;
+
+static const uint8_t BUTTON_PIN = PC13;  // Nucleo B1 user button
+volatile bool reverbEnabled = false;
+
+static const float REVERB_WET = 0.40f;
+static const float REVERB_DRY = 0.90f;
+static const float REVERB_ROOMSIZE = 0.72f;
+static const float REVERB_DAMPING = 0.20f;
 
 // Hardware timer enforces precise timing which is good for audio
 // Timer/audio object's state
@@ -153,8 +163,17 @@ void audioISR() {
   // Optional gain
   centered = (centered * GAIN_NUM) / GAIN_DEN; // unnecessary
 
-  // Shift back to DAC midpoint (1.65V)
-  int out = centered + 2048;
+  // Shift back to DAC midpoint (ADC_MID = 2048 = 1.65V)
+  // Reverb functionality added if reverb enabled
+  int processed;
+
+  if (reverbEnabled) {
+    processed = reverbProcessSample(centered);
+  } else {
+    processed = centered;
+  }
+
+  int out = processed + ADC_MID;
 
   if (out < 0) {
     out = 0;
@@ -184,6 +203,15 @@ void setup() {
   setupADC();
   setupDAC();
 
+  pinMode(BUTTON_PIN, INPUT);
+
+  // Initialize reverb before enabling the audio interrupt
+  reverbInit(SAMPLE_RATE);
+  reverbSetWet(REVERB_WET);
+  reverbSetDry(REVERB_DRY);
+  reverbSetRoomSize(REVERB_ROOMSIZE);
+  reverbSetDamping(REVERB_DAMPING);
+
   audioTimer = new HardwareTimer(TIM3); // dont use TIM2
   audioTimer->setOverflow(SAMPLE_RATE, HERTZ_FORMAT);
   audioTimer->attachInterrupt(audioISR);
@@ -191,6 +219,23 @@ void setup() {
 }
 
 void loop() {
+  static bool lastButtonState = LOW; // button code
+  static uint32_t lastDebounceTime = 0;
+
+  bool currentButtonState = digitalRead(BUTTON_PIN);
+
+  if (currentButtonState == HIGH && lastButtonState == LOW) {
+    if (millis() - lastDebounceTime > 250) {
+      reverbEnabled = !reverbEnabled;
+      lastDebounceTime = millis();
+
+      Serial.print("Reverb: ");
+      Serial.println(reverbEnabled ? "ON" : "OFF");
+    }
+  }
+
+  lastButtonState = currentButtonState;
+
   static uint32_t lastPrint = 0;
 
   if (millis() - lastPrint >= 1000) { // debug

@@ -4,6 +4,7 @@
 
 #include "reverb_model.h" // reverb functionality
 #include "ringmod.h" // ring modulation
+#include "encoder_control.h" // rotary encoder
 
 // Hardware mapping
 // Input: A0 / PA0 = ADC1_IN1, Analog input
@@ -23,10 +24,23 @@ static const int ADC_MID = 2048;
 static const int GAIN_NUM = 1;
 static const int GAIN_DEN = 1;
 
+// audio effect pins
 static const uint8_t REVERB_BUTTON = D4;
 static const uint8_t RING_BUTTON = D2;
+// rotary encoder pins
+static const uint8_t ENCODER_CLK = D5;
+static const uint8_t ENCODER_DT  = D6;
+static const uint8_t ENCODER_SW  = D7;
+// PWM output pins to board
+static const uint8_t PWM1_PIN = D11;
+static const uint8_t PWM2_PIN = D10;
+// switch for audio mute
+static const uint8_t MUTE_SWITCH_PIN = D8;
+
 volatile bool reverbEnabled = false;
 volatile bool ringEnabled = false;
+volatile bool audioMuted = false;
+
 volatile bool reverbPrintPending = false;
 volatile bool reverbPrintState = false;
 volatile bool ringPrintPending = false;
@@ -189,6 +203,10 @@ void audioISR() {
     processed = ringModProcessSample(processed);
   }
 
+  if (audioMuted) {
+    processed = 0;
+  } 
+  
   int out = processed + ADC_MID;
 
   if (out < 0) {
@@ -255,6 +273,10 @@ void setup() {
   pinMode(RING_BUTTON, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(RING_BUTTON), ringButtonISR, FALLING);
 
+  pinMode(MUTE_SWITCH_PIN, INPUT_PULLUP);
+
+  encoderControlInit(ENCODER_CLK, ENCODER_DT, ENCODER_SW, PWM1_PIN, PWM2_PIN); // the rotary encoder initialization
+
   // initialize reverb before enabling the audio interrupt
   reverbInit(SAMPLE_RATE);
   reverbSetWet(REVERB_WET);
@@ -274,6 +296,26 @@ void setup() {
 }
 
 void loop() {
+  audioMuted = (digitalRead(MUTE_SWITCH_PIN) == LOW);
+
+  encoderControlUpdate();
+  if (encoderControlChanged()) {
+    EncoderSetting s = encoderControlGetSetting();
+
+    Serial.print("filter setting ");
+    Serial.print(encoderControlGetIndex());
+
+    Serial.print(" | cutoff ");
+    Serial.print(s.cutoffHz);
+
+    Serial.print(" hz | pwm1 ");
+    Serial.print(s.pwm1Percent);
+
+    Serial.print("% | pwm2 ");
+    Serial.print(s.pwm2Percent);
+    Serial.println("%");
+  }
+
   if (reverbPrintPending) {
     noInterrupts();
     bool state = reverbPrintState;

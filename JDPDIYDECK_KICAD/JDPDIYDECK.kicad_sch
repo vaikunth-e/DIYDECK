@@ -5,12 +5,10 @@
 	(uuid "7581b07f-d505-4ff9-9186-173fb84c30ef")
 	(paper "A4")
 	(title_block
-		(title "ECE304_HW05")
-		(date "2026-03-03")
-		(rev "rev1")
-		(company "ECE304 JDP26")
-		(comment 1 "Osayogie Oyemwense")
-		(comment 2 "Vaikunth Elango")
+		(title "DIYDECK")
+		(date "2026-05-16")
+		(rev "rev2")
+		(company "Vaikunth Elango")
 	)
 	(lib_symbols
 		(symbol "Amplifier_Operational:TLV2372"
@@ -4612,15 +4610,15 @@
 	(symbol
 		(lib_id "Amplifier_Operational:TLV2372")
 		(at 167.64 111.76 0)
+		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "e9797dce-a836-4a3d-9326-e02eaaef671c")
 		(property "Reference" "U3"
-			(at 167.64 101.6 0)
+			(at 167.64 106.68 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4703,7 +4701,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "e9797dce-a836-4a3d-9326-e02eaaef671c")
+		(uuid "e9797dce-a836-4a3d-9326-e02eaaef671d")
 		(property "Reference" "U3"
 			(at 159.512 139.192 0)
 			(effects
@@ -4748,28 +4746,28 @@
 			)
 		)
 		(pin "6"
-			(uuid "a3a7c683-b9eb-4db5-80f7-04cefca6fade")
+			(uuid "a3a7c683-b9eb-4db5-80f7-04cefca6fadf")
 		)
 		(pin "3"
-			(uuid "9098dcf2-2e83-468d-93a8-72f6b6e99c9b")
+			(uuid "9098dcf2-2e83-468d-93a8-72f6b6e99c9c")
 		)
 		(pin "1"
-			(uuid "c4fa86bd-6990-4aac-8301-b0603a366d3d")
+			(uuid "c4fa86bd-6990-4aac-8301-b0603a366d3e")
 		)
 		(pin "2"
-			(uuid "61180ab4-c5bf-4e2c-8bdd-cdac0aac5941")
+			(uuid "61180ab4-c5bf-4e2c-8bdd-cdac0aac5942")
 		)
 		(pin "5"
-			(uuid "3dab77b7-0279-407e-b3e2-778b2e584d86")
+			(uuid "3dab77b7-0279-407e-b3e2-778b2e584d87")
 		)
 		(pin "8"
-			(uuid "7ccaacf6-00ae-45b1-b605-5cac45bd0e84")
+			(uuid "7ccaacf6-00ae-45b1-b605-5cac45bd0e85")
 		)
 		(pin "7"
-			(uuid "591a4beb-ea54-45aa-b22a-b42608860af4")
+			(uuid "591a4beb-ea54-45aa-b22a-b42608860af5")
 		)
 		(pin "4"
-			(uuid "353d8319-535f-47e4-adc8-05a1b08d5220")
+			(uuid "353d8319-535f-47e4-adc8-05a1b08d5221")
 		)
 		(instances
 			(project ""
